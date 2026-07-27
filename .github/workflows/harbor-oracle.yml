@@ -1,0 +1,49 @@
+name: Harbor Oracle Verification
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Harbor
+        run: pip install harbor
+
+      - name: Run harbor oracle
+        run: harbor run -a oracle -p . -y -q --jobs-dir jobs
+
+      - name: Compute pass@1
+        run: |
+          REWARD_FILE=$(find jobs -path '*/verifier/reward.txt' | head -1)
+          if [ -z "$REWARD_FILE" ]; then
+            echo "No reward.txt found" >&2
+            exit 1
+          fi
+          REWARD=$(cat "$REWARD_FILE")
+          echo "## pass@1 result" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**reward:** \`$REWARD\`" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$REWARD" = "1.0" ] || [ "$REWARD" = "1" ]; then
+            echo "**pass@1:** 1.0 (1/1) - PASSED" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**pass@1:** 0.0 (0/1) - FAILED" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Upload job artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harbor-oracle-job
+          path: jobs/

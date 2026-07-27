@@ -1,0 +1,37 @@
+artifacts = [
+    "/app/target/x86_64-unknown-linux-gnu/release/app",
+    "/app/target/aarch64-unknown-linux-gnu/release/app",
+    "/app/target/armv7-unknown-linux-gnueabihf/release/app",
+    "/app/target/x86_64-pc-windows-gnu/release/app.exe",
+]
+
+[task]
+name = "dynamo/cross-compile-sqlite-cli"
+description = "Fix cross-linker configuration so a Rust CLI with a bundled SQLite dependency builds and functions identically across four target triples"
+
+[metadata]
+category = "build_dependency_and_release_management"
+subcategory = "cross_compilation_and_platform_targeting"
+task_objective = ["fix", "configure", "build_or_package", "debug"]
+artifact_type = ["build_system_or_package_metadata", "codebase", "configuration_file", "binary_executable_or_library"]
+expert_time_estimate_hours = 0.3
+model_tested = "GPT-5.4"
+agent_tested = "Terminus-2"
+difficulty_explanation = "The build failure for aarch64/armv7/windows-gnu targets appears fixable by disabling or feature-gating the SQLite dependency for those targets, which produces a green build with silently missing functionality. The correct fix is per-target cross-linker configuration in .cargo/config.toml, keeping the native dependency active and identical across all four targets."
+solution_explanation = "Add [target.<triple>] linker entries to .cargo/config.toml pointing at the correct cross-gcc for aarch64-linux-gnu, arm-linux-gnueabihf, and the mingw-w64 gcc for windows-gnu, then build all four targets in release mode with no feature changes."
+verification_explanation = "Each of the four release binaries is executed (natively, under QEMU user-mode, or under Wine) against a freshly-generated input file at grade time, and must print the correct SQL-computed sum. A stubbed or feature-disabled binary cannot produce the correct value since the input is not known at build time."
+
+[verifier]
+timeout_sec = 180.0
+
+[agent]
+timeout_sec = 900.0
+
+[environment]
+build_timeout_sec = 900.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+gpus = 0
+allow_internet = false
+mcp_servers = []

@@ -1,0 +1,17 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "app"
+path = "src/main.rs"
+
+[dependencies]
+# "bundled" compiles SQLite's C source directly into the crate, which is what
+# forces a real cross-linking problem per target instead of relying on a
+# system-installed libsqlite3.
+rusqlite = { version = "0.31.0", features = ["bundled"] }
+
+[profile.release]
+opt-level = 2

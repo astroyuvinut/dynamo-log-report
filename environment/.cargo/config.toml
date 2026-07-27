@@ -1,0 +1,7 @@
+# STARTING STATE (intentionally incomplete): only the native host target
+# is configured. aarch64, armv7, and windows-gnu targets are missing their
+# cross-linker settings, so `cargo build --target <triple>` will fail to
+# link for those three unless this file is fixed.
+
+[target.x86_64-unknown-linux-gnu]
+linker = "gcc"
