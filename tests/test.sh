@@ -2,7 +2,7 @@
 set -uo pipefail
 mkdir -p /logs/verifier
 
-pytest /tests/test_outputs.py \
+pytest /app/tests/test_outputs.py \
     --ctrf /logs/verifier/ctrf.json \
     -v
 
